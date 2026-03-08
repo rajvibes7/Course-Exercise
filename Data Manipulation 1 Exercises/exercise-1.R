@@ -4,13 +4,17 @@
 
 # Load libraries
 library(dplyr)
+library(haven)
+
+getwd()
+setwd("D:/R training/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData")
 
 #-----------------------------------------------------------
 # 0. Read SDTM LB and ADSL datasets
 #-----------------------------------------------------------
 
-lb   <- read.csv("sdtm_lb.csv", stringsAsFactors = FALSE)
-adsl <- read.csv("adsl.csv", stringsAsFactors = FALSE)
+lb   <- read_xpt("sdtm/LB.XPT")
+adsl <- read_xpt("ADAM/ADSL.XPT")
 
 #-----------------------------------------------------------
 # 01. Select Variables
@@ -21,7 +25,7 @@ adsl <- read.csv("adsl.csv", stringsAsFactors = FALSE)
 
 adlb_step1 <- lb %>%
   # Your code here
-  
+   inner_join(adsl, by="USUBJID")
   
   #-----------------------------------------------------------
 # 02. Filter Data
@@ -31,7 +35,7 @@ adlb_step1 <- lb %>%
 
 adlb_step2 <- adlb_step1 %>%
   # Your code here
-  
+  filter(SAFFL == "Y" & !is.na(LBSTRESN))
   
   #-----------------------------------------------------------
 # 03. Create PARAMCD
@@ -43,7 +47,13 @@ adlb_step2 <- adlb_step1 %>%
 
 adlb_step3 <- adlb_step2 %>%
   # Your code here
-  
+  mutate(
+  paramcd = case_when(
+  toupper(LBTEST) == "ALANINE AMINOTRANSFERASE" ~ "ALT",
+  toupper(LBTEST) == "ASPARTATE AMINOTRANSFERASE" ~ "AST",
+  toupper(LBTEST) == "BILIRUBIN" ~ "BILI",
+  TRUE ~ NA_character_
+  ))
   
   #-----------------------------------------------------------
 # 04. Create AVAL
@@ -53,7 +63,7 @@ adlb_step3 <- adlb_step2 %>%
 
 adlb_step4 <- adlb_step3 %>%
   # Your code here
-  
+  mutate(AVAL = as.numeric(LBSTRESN))
   
   #-----------------------------------------------------------
 # 05. Create AVISITN
@@ -62,7 +72,7 @@ adlb_step4 <- adlb_step3 %>%
 
 adlb_step5 <- adlb_step4 %>%
   # Your code here
-  
+  mutate(AVISITN = as.numeric(VISITNUM))
   
   #-----------------------------------------------------------
 # 06. Derive ABLFL
@@ -72,6 +82,17 @@ adlb_step5 <- adlb_step4 %>%
 
 adlb_step6 <- adlb_step5 %>%
   # Your code here
+  arrange(USUBJID, LBTESTCD, LBDTC, VISITNUM) |>
+  group_by(USUBJID, LBTESTCD) |>
+  mutate(
+    is_last = row_number() == n(),
+    ABLFL = if_else(
+      is_last & !is.na(AVAL) & !is.na(LBDTC) &
+        !is.na(TRTSDT) & LBDTC <= TRTSDT,
+      "Y",
+      NA_character_
+    )
+  ) 
   
   
   #-----------------------------------------------------------
@@ -82,9 +103,14 @@ adlb_step6 <- adlb_step5 %>%
 
 baseline <- adlb_step6 %>%
   # Your code here
+  group_by(USUBJID, LBTESTCD) |>
+  mutate(
+    BASE = if_else(ABLFL == "Y", AVAL, NA_real_)
+  ) |>
+  fill(BASE)
   
-  
-  adlb_step7 <- adlb_step6 %>%
+  #adlb_step7 <- adlb_step6 %>%
+  adlb_step7 <- baseline
   # Your code here
   
   
@@ -96,6 +122,10 @@ baseline <- adlb_step6 %>%
 
 adlb_final <- adlb_step7 %>%
   # Your code here
+   mutate(CHG  = if_else(!is.na(AVAL) & !is.na(BASE),
+                     AVAL - BASE,
+                     NA_real_)
+   )
   
   
   #-----------------------------------------------------------
