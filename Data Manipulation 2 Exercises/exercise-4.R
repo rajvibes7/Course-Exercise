@@ -17,21 +17,30 @@
 
 library(dplyr)
 library(purrr)
+library(tidyr)
+library(haven)
+
+getwd()
+setwd("D:/R training/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData")
 
 #-----------------------------------------------------------
 # 1. Read ADVS Dataset
 #-----------------------------------------------------------
 
-advs <- read.csv("ADVS.csv", stringsAsFactors = FALSE)
+adsl <- read_xpt("ADAM/ADSL.XPT")
+advs0 <- read_xpt("SDTM/VS.XPT")
+
+advs <- adsl |>
+  inner_join(advs0, by = "USUBJID")
 
 #-----------------------------------------------------------
 # 2. Create Parameter List
 # Store vital signs parameters in a vector.
 #-----------------------------------------------------------
 
-params <- c(
+params <-  unique(advs$VSTEST)
   # Your code here
-)
+
 
 #-----------------------------------------------------------
 # 3. Loop Over Parameters Using map()
@@ -47,9 +56,17 @@ params <- c(
 summary_list <- map(
   params,
   function(param) {
-    
     # Your code here
-    
+    advs |>
+      filter(VSTEST == param) |>
+      group_by(TRT01A, VISIT) |>
+      summarise(
+        N = sum(!is.na(VSSTRESN)),
+        MEAN = mean(VSSTRESN, na.rm = TRUE),
+        SD = sd(VSSTRESN, na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      mutate(PARAM = param)
   }
 )
 
@@ -60,7 +77,7 @@ summary_list <- map(
 # using bind_rows().
 #-----------------------------------------------------------
 
-final_summary <- 
+final_summary <- bind_rows(summary_list)
   # Your code here
   
   
@@ -70,6 +87,7 @@ final_summary <-
 
 # Your code here
 
+summary(final_summary)
 
 #-----------------------------------------------------------
 # End of Exercise
