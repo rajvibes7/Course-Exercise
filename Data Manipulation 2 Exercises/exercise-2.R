@@ -13,12 +13,20 @@
 # Load libraries
 library(dplyr)
 library(tidyr)
+library(haven)
+
+getwd()
+setwd("D:/R training/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData")
 
 #-----------------------------------------------------------
 # 0. Read ADVS dataset
 #-----------------------------------------------------------
 
-advs <- read.csv("ADVS.csv", stringsAsFactors = FALSE)
+adsl <- read_xpt("ADAM/ADSL.XPT")
+advs0 <- read_xpt("SDTM/VS.XPT")
+
+advs <- adsl |>
+  inner_join(advs0, by = "USUBJID")
 
 #-----------------------------------------------------------
 # 1. Filter Parameter
@@ -28,7 +36,7 @@ advs <- read.csv("ADVS.csv", stringsAsFactors = FALSE)
 
 step1 <- advs %>%
   # Your code here
-  
+  filter(VSTESTCD == "SYSBP")
   
   #-----------------------------------------------------------
 # 2. Group Data
@@ -39,7 +47,7 @@ step1 <- advs %>%
 
 step2 <- step1 %>%
   # Your code here
-  
+  group_by(TRT01A, VISIT)
   
   #-----------------------------------------------------------
 # 3. Calculate Mean AVAL
@@ -49,6 +57,10 @@ step2 <- step1 %>%
 
 step3 <- step2 %>%
   # Your code here
+  summarise(
+    MEAN_AVAL = mean(VSSTRESN, na.rm = TRUE),
+    .groups = "drop"
+  )
   
   
   #-----------------------------------------------------------
@@ -62,6 +74,10 @@ step3 <- step2 %>%
 
 tfl_table <- step3 %>%
   # Your code here
+  pivot_wider(
+    names_from = VISIT,
+    values_from = MEAN_AVAL
+  )
   
   
   #-----------------------------------------------------------
@@ -71,6 +87,7 @@ tfl_table <- step3 %>%
 
 # Your code here
 
+View(tfl_table)
 
 #-----------------------------------------------------------
 # End of Exercise
