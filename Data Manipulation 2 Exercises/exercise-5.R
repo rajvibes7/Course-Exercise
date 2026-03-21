@@ -16,8 +16,12 @@
 # 0. Create Input Data
 #-----------------------------------------------------------
 
+library(lubridate)
+library(tidyverse)
+
 trtsdt_char  <- "2024-01-15"
 aestdtc_char <- "2024-01-20"
+
 
 #-----------------------------------------------------------
 # 1. Convert to Date Objects
@@ -27,9 +31,11 @@ aestdtc_char <- "2024-01-20"
 
 trtsdt <- 
   # Your code here
+  as.Date(trtsdt_char, format = "%Y-%m-%d")
   
   aestdtc <- 
   # Your code here
+    as.Date(aestdtc_char, format = "%Y-%m-%d")
   
   
   #-----------------------------------------------------------
@@ -42,6 +48,11 @@ trtsdt <-
 
 astdy <- 
   # Your code here
+    ifelse(
+      aestdtc >= trtsdt,
+      as.numeric(aestdtc - trtsdt) + 1,
+      as.numeric(aestdtc - trtsdt)
+    )
   
   
   #-----------------------------------------------------------
@@ -52,7 +63,7 @@ astdy <-
 
 duration_days <- 
   # Your code here
-  
+     as.numeric(aestdtc - trtsdt)  
   
   #-----------------------------------------------------------
 # 4. Verify ASTDY
@@ -60,8 +71,8 @@ duration_days <-
 #-----------------------------------------------------------
 
 # Your code here
-
-
+  
+  astdy
 #-----------------------------------------------------------
 # End of Exercise
 #-----------------------------------------------------------
