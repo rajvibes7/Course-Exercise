@@ -30,14 +30,23 @@ library(dplyr)
 derive_baseline_flag <- function(df, baseline_visit) {
   
   # Your code here
-  
+  df %>%
+    mutate(
+      BASEFL = ifelse(AVISIT == baseline_visit, "Y", "")
+    )
 }
 
 #-----------------------------------------------------------
 # 2. Read Sample VS Data
 #-----------------------------------------------------------
 
-vs <- read.csv("VS.csv", stringsAsFactors = FALSE)
+library(haven)
+
+getwd()
+setwd("D:/R training/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData-main/UpdatedCDISCPilotData")
+
+
+vs <- read_xpt("SDTM/VS.XPT")
 
 #-----------------------------------------------------------
 # 3. Test the Function
@@ -47,7 +56,16 @@ vs <- read.csv("VS.csv", stringsAsFactors = FALSE)
 
 vs_with_basefl <- 
   # Your code here
-  
+  function(df, baseline_visit) {
+    df %>%
+      mutate(
+        BASEFL = ifelse(
+          trimws(toupper(VISIT)) == toupper(baseline_visit),
+          "Y",
+          ""
+        )
+      )
+  }
   
   #-----------------------------------------------------------
 # 4. Verify Output
@@ -56,6 +74,9 @@ vs_with_basefl <-
 
 # Your code here
 
+vs_with_basefl |>
+  filter(BASEFL == "Y") |>
+  select(USUBJID, VISIT, BASEFL)
 
 #-----------------------------------------------------------
 # End of Exercise
