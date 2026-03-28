@@ -44,7 +44,9 @@ df <- data.frame(
 
 df_step1 <- df %>%
   # Your code here
-  
+  mutate(
+    STUDYID = sub("-.*", "", USUBJID)
+  )
   
   #-----------------------------------------------------------
 # 3. Extract Country Code
@@ -53,7 +55,9 @@ df_step1 <- df %>%
 
 df_step2 <- df_step1 %>%
   # Your code here
-  
+  mutate(
+    COUNTRY = sub("^[^-]+-([^-]+)-.*", "\\1", USUBJID)
+  )
   
   #-----------------------------------------------------------
 # 4. Create SUBJID_SHORT
@@ -63,7 +67,9 @@ df_step2 <- df_step1 %>%
 
 df_step3 <- df_step2 %>%
   # Your code here
-  
+  mutate(
+    SUBJID_SHORT = sub("^[^-]+-[^-]+-", "", USUBJID)
+  )
   
   #-----------------------------------------------------------
 # 5. Check USA Subjects
@@ -71,9 +77,9 @@ df_step3 <- df_step2 %>%
 # are from "USA" sites.
 #-----------------------------------------------------------
 
-usa_check <- 
+usa_check <- df_step3 |>
   # Your code here
-  
+  filter(COUNTRY == "USA")
   
   #-----------------------------------------------------------
 # 6. Review Output
@@ -81,6 +87,7 @@ usa_check <-
 
 # Your code here
 
+df_step3
 
 #-----------------------------------------------------------
 # End of Exercise
